@@ -1,0 +1,69 @@
+'Email sending Process'
+Sub Send_Email_VBA()
+
+Dim outApp As Object
+Dim outMail As Object
+Dim outAcct As Object
+Dim ws As Worksheet
+
+Set ws = ThisWorkbook.Sheets("Email Sheet")
+Set outApp = CreateObject("Outlook.Application")
+
+
+Dim insertName$
+Dim I As Integer
+Dim last_row As Integer
+Dim template_content
+template_content = read_html("C:\Users\nb02f3302\OneDrive - Haleon\Documents\emailtemplate")
+last_row = Application.WorksheetFunction.CountA(ws.Range("A:A"))
+
+With outLook
+For I = 2 To last_row
+
+Set outMail = outApp.createItem(0)
+
+outMail.To = ws.Range("B" & I).Value
+outMail.cc = ws.Range("C" & I).Value
+outMail.Subject = "[Action Required] SOX Business Critical - Workday Quarterly Access Validation"
+
+insertName = Sheet1.Cells(I, 1)
+outMail.HTMLBody = updateVariables(template_content, insertName)
+If ws.Range("D" & I) <> "" Then
+outMail.Attachments.Add ws.Range("D" & I).Value
+End If
+
+ws.Range("E" & I).Value = "11/7/2023"
+
+outMail.display
+Next I
+
+End With
+'MsgBox "Mail sent"
+
+End Sub
+
+'Read html file'
+Function read_html(xfile As String)
+Dim fso As Object
+Dim ts As Object
+Dim htmlContent
+
+Set fso = CreateObject("Scripting.FileSystemObject")
+Set ts = fso.GetFile(xfile).OpenAsTextStream(1, -2)
+htmlContent = ts.readAll
+ts.Close
+
+htmlContent = Replace(htmlContent, "align=center x:publishsource=", "align= left x:publishsource=")
+read_html = htmlContent
+
+Set ts = Nothing
+Set fso = Nothing
+
+End Function
+'variable update'
+Function updateVariables(cnt, fn$)
+Dim temp1 As String
+temp1 = Replace(cnt, "insert_name", fn)
+updateVariables = temp1
+End Function
+
